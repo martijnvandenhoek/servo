@@ -24,6 +24,7 @@ use crate::dom::bindings::root::{Dom, DomOnceCell, DomRoot};
 use crate::dom::bindings::str::DOMString;
 use crate::dom::blob::Blob;
 use crate::dom::document::Document;
+use crate::dom::domtokenlist::DOMTokenList;
 use crate::dom::element::{AttributeMutation, Element};
 use crate::dom::event::{Event, EventBubbles, EventCancelable};
 use crate::dom::eventtarget::EventTarget;
@@ -90,6 +91,7 @@ pub struct HTMLFormElement {
     controls: DomRefCell<Vec<Dom<Element>>>,
     past_names_map: DomRefCell<HashMap<Atom, (Dom<Element>, Tm)>>,
     firing_submission_events: Cell<bool>,
+    rel_list: MutNullableDom<DOMTokenList>,
 }
 
 impl HTMLFormElement {
@@ -107,6 +109,7 @@ impl HTMLFormElement {
             controls: DomRefCell::new(Vec::new()),
             past_names_map: DomRefCell::new(HashMap::new()),
             firing_submission_events: Cell::new(false),
+            rel_list: Default::default(),
         }
     }
 
@@ -240,6 +243,9 @@ impl HTMLFormElementMethods for HTMLFormElement {
 
     // https://html.spec.whatwg.org/multipage/#dom-fs-target
     make_setter!(SetTarget, "target");
+
+    // https://html.spec.whatwg.org/multipage/#dom-a-rel
+    make_getter!(Rel, "rel");
 
     // https://html.spec.whatwg.org/multipage/#the-form-element:concept-form-submit
     fn Submit(&self) {
@@ -433,6 +439,19 @@ impl HTMLFormElementMethods for HTMLFormElement {
             &*element_node.downcast::<Element>().unwrap(),
         )));
     }
+    // https://html.spec.whatwg.org/multipage/#dom-a-rel
+    fn SetRel(&self, rel: DOMString) {
+        self.upcast::<Element>()
+            .set_tokenlist_attribute(&local_name!("rel"), rel);
+    }
+
+    // https://html.spec.whatwg.org/multipage/#dom-a-rellist
+    fn RelList(&self) -> DomRoot<DOMTokenList> {
+        //rel_list
+            //.or_init(|| DOMTokenList::new(self.upcast(), &local_name!("rel")))
+        self
+    }
+
 
     // https://html.spec.whatwg.org/multipage/#the-form-element:supported-property-names
     #[allow(non_snake_case)]
@@ -1189,7 +1208,6 @@ impl HTMLFormElement {
         // Step 9
         Some(form_data.datums())
     }
-
     pub fn reset(&self, _reset_method_flag: ResetFrom) {
         // https://html.spec.whatwg.org/multipage/#locked-for-reset
         if self.marked_for_reset.get() {
