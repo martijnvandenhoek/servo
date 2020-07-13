@@ -453,7 +453,6 @@ impl HTMLFormElementMethods for HTMLFormElement {
             .or_init(|| DOMTokenList::new(self.upcast(), &local_name!("rel")))
     }
 
-
     // https://html.spec.whatwg.org/multipage/#the-form-element:supported-property-names
     #[allow(non_snake_case)]
     fn SupportedPropertyNames(&self) -> Vec<DOMString> {
