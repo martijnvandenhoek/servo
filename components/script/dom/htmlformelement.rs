@@ -69,6 +69,7 @@ use servo_atoms::Atom;
 use servo_rand::random;
 use std::borrow::ToOwned;
 use std::cell::Cell;
+use style::attr::AttrValue;
 use style::str::split_html_space_chars;
 
 use crate::dom::bindings::codegen::UnionTypes::RadioNodeListOrElement;
@@ -439,7 +440,7 @@ impl HTMLFormElementMethods for HTMLFormElement {
             &*element_node.downcast::<Element>().unwrap(),
         )));
     }
-    
+
     // https://html.spec.whatwg.org/multipage/#dom-a-rel
     fn SetRel(&self, rel: DOMString) {
         self.upcast::<Element>()
