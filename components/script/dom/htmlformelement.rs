@@ -20,7 +20,7 @@ use crate::dom::bindings::error::{Error, Fallible};
 use crate::dom::bindings::inheritance::{Castable, ElementTypeId, HTMLElementTypeId, NodeTypeId};
 use crate::dom::bindings::refcounted::Trusted;
 use crate::dom::bindings::reflector::DomObject;
-use crate::dom::bindings::root::{Dom, DomOnceCell, DomRoot};
+use crate::dom::bindings::root::{Dom, DomOnceCell, DomRoot, MutNullableDom};
 use crate::dom::bindings::str::DOMString;
 use crate::dom::blob::Blob;
 use crate::dom::document::Document;
@@ -439,6 +439,7 @@ impl HTMLFormElementMethods for HTMLFormElement {
             &*element_node.downcast::<Element>().unwrap(),
         )));
     }
+    
     // https://html.spec.whatwg.org/multipage/#dom-a-rel
     fn SetRel(&self, rel: DOMString) {
         self.upcast::<Element>()
@@ -447,9 +448,8 @@ impl HTMLFormElementMethods for HTMLFormElement {
 
     // https://html.spec.whatwg.org/multipage/#dom-a-rellist
     fn RelList(&self) -> DomRoot<DOMTokenList> {
-        //rel_list
-            //.or_init(|| DOMTokenList::new(self.upcast(), &local_name!("rel")))
-        self
+        self.rel_list
+            .or_init(|| DOMTokenList::new(self.upcast(), &local_name!("rel")))
     }
 
 
@@ -1652,6 +1652,16 @@ impl VirtualMethods for HTMLFormElement {
                 .as_maybe_form_control()
                 .expect("Element must be a form control")
                 .reset_form_owner();
+        }
+    }
+
+    fn parse_plain_attribute(&self, name: &LocalName, value: DOMString) -> AttrValue {
+        match name {
+            &local_name!("rel") => AttrValue::from_serialized_tokenlist(value.into()),
+            _ => self
+                .super_type()
+                .unwrap()
+                .parse_plain_attribute(name, value),
         }
     }
 }
